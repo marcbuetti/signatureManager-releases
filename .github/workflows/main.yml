@@ -1,5 +1,8 @@
 name: Update Release Notes
 
+permissions:
+  contents: write
+
 on:
   workflow_dispatch:
 
