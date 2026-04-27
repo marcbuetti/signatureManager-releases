@@ -5,8 +5,8 @@
 
     <item>
       <title>4.0.3</title>
-      <pubDate>Mon, 27 Apr 2026 22:55:41 +0000</pubDate>
-      <sparkle:version>4.0.3</sparkle:version>
+      <pubDate>Mon, 27 Apr 2026 23:08:53 +0000</pubDate>
+      <sparkle:version>1021</sparkle:version>
       <sparkle:shortVersionString>4.0.3</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
