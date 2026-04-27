@@ -181,10 +181,10 @@ jobs:
               <item>
                 <title>${{ needs.fetch.outputs.version }}</title>
                 <pubDate>${DATE}</pubDate>
-                sparkle:version${{ needs.fetch.outputs.version }}</sparkle:version>
-                sparkle:shortVersionString${{ needs.fetch.outputs.version }}</sparkle:shortVersionString>
-                sparkle:minimumSystemVersion14.0</sparkle:minimumSystemVersion>
-                sparkle:releaseNotesLinkhttps://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
+                <sparkle:version>${{ needs.fetch.outputs.version }}</sparkle:version>
+                <sparkle:shortVersionString>${{ needs.fetch.outputs.version }}</sparkle:shortVersionString>
+                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+                <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
           
                 <enclosure 
                   url="https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}"
