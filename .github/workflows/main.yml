@@ -1,10 +1,10 @@
-name: Update Release Notes
-
-permissions:
-  contents: write
+name: Update Release + HTML + Mirror
 
 on:
   workflow_dispatch:
+
+permissions:
+  contents: write
 
 jobs:
   update:
@@ -19,38 +19,86 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
+      # 🔥 RELEASE DATEN HOLEN
       - name: Fetch latest release
         run: |
           DATA=$(curl -s https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/latest)
 
           VERSION=$(echo $DATA | jq -r '.tag_name')
+          NAME=$(echo $DATA | jq -r '.name')
           BODY=$(echo $DATA | jq -r '.body')
+          DMG_URL=$(echo $DATA | jq -r '.assets[] | select(.name | endswith(".dmg")) | .browser_download_url')
+          DMG_NAME=$(echo $DATA | jq -r '.assets[] | select(.name | endswith(".dmg")) | .name')
 
           echo "VERSION=$VERSION" >> $GITHUB_ENV
-
+          echo "NAME=$NAME" >> $GITHUB_ENV
           echo "BODY<<EOF" >> $GITHUB_ENV
           echo "$BODY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
+          echo "DMG_URL=$DMG_URL" >> $GITHUB_ENV
+          echo "DMG_NAME=$DMG_NAME" >> $GITHUB_ENV
 
-      - name: Sync repo first
+      # 🔥 REPO SYNC
+      - name: Sync repo
         run: |
           git fetch origin
           git reset --hard origin/main
-      
+
+      # 🔥 DUPLICATE CHECK
+      - name: Check if version already exists in HTML
+        id: check_html
+        run: |
+          if grep -q "Version ${VERSION}" releaseNotes.html; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 🔥 HTML UPDATE (nur wenn neu)
       - name: Update HTML file
+        if: steps.check_html.outputs.exists == 'false'
         run: |
           FILE="releaseNotes.html"
-      
+
           NEW_ENTRY="<h1>Version ${VERSION}</h1>\n<p>${BODY}</p>\n"
-      
+
           echo -e "$NEW_ENTRY$(cat $FILE)" > $FILE
-      
-      - name: Commit & Push
+
+      # 🔥 COMMIT HTML
+      - name: Commit & Push HTML
+        if: steps.check_html.outputs.exists == 'false'
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-      
+
           git add releaseNotes.html
-          git diff --cached --quiet || git commit -m "Update release notes ${VERSION}"
-      
+          git commit -m "Update release notes ${VERSION}" || echo "No changes"
           git push origin main
+
+      # 🔥 CHECK RELEASE EXISTIERT SCHON?
+      - name: Check if release exists
+        id: check_release
+        run: |
+          if curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ env.VERSION }} | grep -q '"tag_name"'; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      # 🔥 DMG DOWNLOAD
+      - name: Download DMG
+        if: steps.check_release.outputs.exists == 'false'
+        run: |
+          curl -L "$DMG_URL" -o "$DMG_NAME"
+
+      # 🔥 RELEASE ERSTELLEN
+      - name: Create Release
+        if: steps.check_release.outputs.exists == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: ${{ env.NAME }}
+          body: ${{ env.BODY }}
+          files: ${{ env.DMG_NAME }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
