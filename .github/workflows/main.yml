@@ -146,25 +146,22 @@ jobs:
         run: |
           curl -L "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" -o "${{ needs.fetch.outputs.dmg_name }}"
 
-      - name: Install Sparkle tools
+      - name: Install Sparkle sign tool
         run: |
-          git clone https://github.com/sparkle-project/Sparkle.git
-          cd Sparkle
-          make
+          curl -L https://github.com/sparkle-project/Sparkle/releases/latest/download/sign_update -o sign_update
+          chmod +x sign_update
 
       - name: Sign DMG
         id: sign
         run: |
-          chmod +x Sparkle/bin/sign_update
-
-          SIGNATURE=$(Sparkle/bin/sign_update 
-            "${{ needs.fetch.outputs.dmg_name }}" 
-            "$(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY }}")" 
-            | grep sparkle:edSignature 
-            | sed 's/."(.)".*/\1/')
-
+          SIGNATURE=$(./sign_update \
+            "${{ needs.fetch.outputs.dmg_name }}" \
+            "$(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY }}")" \
+            | grep sparkle:edSignature \
+            | sed 's/.*"\(.*\)".*/\1/')
+      
           echo "signature=$SIGNATURE" >> $GITHUB_OUTPUT
-
+      
       - name: Get DMG size
         id: dmg
         run: |
