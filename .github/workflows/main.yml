@@ -141,7 +141,7 @@ jobs:
   # 4. GENERATE APPCAST
   # ========================
   generate_appcast:
-    runs-on: ubuntu-latest
+    runs-on: macos-latest
     needs: [fetch, mirror_release]
     if: needs.fetch.outputs.dmg_name != ''
 
