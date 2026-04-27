@@ -85,8 +85,35 @@ jobs:
         if: steps.check.outputs.exists == 'false'
         run: |
           FILE="releaseNotes.html"
-          NEW_ENTRY="<h1>Version ${{ needs.fetch.outputs.version }}</h1>\n<p>${{ needs.fetch.outputs.body }}</p>\n"
-          echo -e "$NEW_ENTRY$(cat $FILE)" > $FILE
+      
+          VERSION="${{ needs.fetch.outputs.version }}"
+          BODY="${{ needs.fetch.outputs.body }}"
+      
+          # 👉 BODY in einzelne <li> umwandeln
+          ITEMS=$(echo "$BODY" | sed 's/^- //g' | sed '/^$/d' | sed 's/^/<li>/' | sed 's/$/<\/li>/')
+      
+          NEW_BLOCK=$(cat <<EOF
+          <div class="card">
+              <div class="version">Version ${VERSION}</div>
+              <ul class="changes">
+                  ${ITEMS}
+              </ul>
+          </div>
+          EOF
+          )
+      
+          # 👉 Einfügen direkt nach der warning box
+          awk -v block="$NEW_BLOCK" '
+            /<\/div>[[:space:]]*$/ && inserted == 0 {
+              print
+              print block
+              inserted=1
+              next
+            }
+            { print }
+          ' "$FILE" > temp.html
+      
+          mv temp.html "$FILE"
 
       - name: Commit & Push
         if: steps.check.outputs.exists == 'false'
