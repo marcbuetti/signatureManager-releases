@@ -4,10 +4,10 @@
     <title>Signature Manager</title>
 
     <item>
-      <title>4.0.2</title>
+      <title>4.0.1</title>
       <pubDate>Mon, 27 Apr 2026 21:52:36 +0000</pubDate>
       <sparkle:version>4.0.2</sparkle:version>
-      <sparkle:shortVersionString>4.0.2</sparkle:shortVersionString>
+      <sparkle:shortVersionString>4.0.1</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
 
