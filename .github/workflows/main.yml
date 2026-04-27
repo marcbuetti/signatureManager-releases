@@ -31,7 +31,7 @@ jobs:
         id: data
         run: |
           DATA=$(curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/latest)
       
@@ -113,7 +113,7 @@ jobs:
         id: check
         run: |
           if curl -s \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
             https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.fetch.outputs.version }} \
             | grep -q '"tag_name"'; then
             echo "exists=true" >> $GITHUB_OUTPUT
@@ -134,7 +134,7 @@ jobs:
             --title "${{ needs.fetch.outputs.name }}" \
             --notes "${{ needs.fetch.outputs.body }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
 
   # ========================
@@ -159,7 +159,7 @@ jobs:
         if: needs.fetch.outputs.dmg_name != ''
         run: |
           curl -L \
-            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
             "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" \
             -o "${{ needs.fetch.outputs.dmg_name }}"
       
