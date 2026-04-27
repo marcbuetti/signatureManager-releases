@@ -1,0 +1,44 @@
+name: Update Release Notes
+
+on:
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Fetch latest release
+        run: |
+          DATA=$(curl -s https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/latest)
+
+          VERSION=$(echo $DATA | jq -r '.tag_name')
+          BODY=$(echo $DATA | jq -r '.body')
+
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+          echo "BODY<<EOF" >> $GITHUB_ENV
+          echo "$BODY" >> $GITHUB_ENV
+          echo "EOF" >> $GITHUB_ENV
+
+      - name: Update HTML file
+        run: |
+          FILE="releaseNotes.html"
+
+          NEW_ENTRY="<h1>Version ${VERSION}</h1>\n<p>${BODY}</p>\n"
+
+          echo -e "$NEW_ENTRY$(cat $FILE)" > $FILE
+
+      - name: Commit & Push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add releaseNotes.html
+          git commit -m "Update release notes ${VERSION}" || echo "No changes"
+          git push
