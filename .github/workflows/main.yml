@@ -32,28 +32,25 @@ jobs:
           echo "$BODY" >> $GITHUB_ENV
           echo "EOF" >> $GITHUB_ENV
 
+      - name: Sync repo first
+        run: |
+          git fetch origin
+          git reset --hard origin/main
+      
       - name: Update HTML file
         run: |
           FILE="releaseNotes.html"
-
+      
           NEW_ENTRY="<h1>Version ${VERSION}</h1>\n<p>${BODY}</p>\n"
-
+      
           echo -e "$NEW_ENTRY$(cat $FILE)" > $FILE
-
+      
       - name: Commit & Push
         run: |
           git config user.name "github-actions"
           git config user.email "actions@github.com"
       
-          # IMMER zuerst neuesten Stand holen
-          git fetch origin
-          git reset --hard origin/main
-      
-          # Jetzt Änderungen einfügen
           git add releaseNotes.html
-      
-          # Nur committen wenn nötig
           git diff --cached --quiet || git commit -m "Update release notes ${VERSION}"
       
-          # Push (jetzt ohne Konflikt)
           git push origin main
