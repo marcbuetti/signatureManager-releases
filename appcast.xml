@@ -1,0 +1,23 @@
+<?xml version="1.0" standalone="yes"?>
+<rss xmlns:sparkle="http://www.andymatuschak.org/xml-namespaces/sparkle" version="2.0">
+  <channel>
+    <title>Signature Manager</title>
+
+    <item>
+      <title>4.0.2</title>
+      <pubDate>Mon, 27 Apr 2026 21:15:36 +0000</pubDate>
+      sparkle:version4.0.2</sparkle:version>
+      sparkle:shortVersionString4.0.2</sparkle:shortVersionString>
+      sparkle:minimumSystemVersion14.0</sparkle:minimumSystemVersion>
+      sparkle:releaseNotesLinkhttps://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
+
+      <enclosure 
+        url="https://github.com/marcbuetti/signatureManager-releases/releases/download/4.0.2/Signature.Manager.dmg"
+        length="9"
+        type="application/octet-stream"
+        sparkle:edSignature=""
+      />
+    </item>
+
+  </channel>
+</rss>
