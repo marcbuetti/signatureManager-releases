@@ -34,20 +34,23 @@ jobs:
             -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
             -H "Accept: application/vnd.github+json" \
             https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/latest)
-
-          VERSION=$(echo $DATA | jq -r '.tag_name')
-          NAME=$(echo $DATA | jq -r '.name')
-          BODY=$(echo $DATA | jq -r '.body')
-          DMG_URL=$(echo "$DATA" | jq -r '.assets[]? | select(.name | endswith(".dmg")) | .browser_download_url' | head -n1)
-          DMG_NAME=$(echo "$DATA" | jq -r '.assets[]? | select(.name | endswith(".dmg")) | .name' | head -n1)
-
+      
+          echo "$DATA"
+      
+          VERSION=$(echo "$DATA" | jq -r '.tag_name')
+          NAME=$(echo "$DATA" | jq -r '.name')
+          BODY=$(echo "$DATA" | jq -r '.body')
+      
+          DMG_URL=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .browser_download_url' | head -n1)
+          DMG_NAME=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .name' | head -n1)
+      
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
-
+      
           echo "body<<EOF" >> $GITHUB_OUTPUT
           echo "$BODY" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
-
+      
           echo "dmg_url=$DMG_URL" >> $GITHUB_OUTPUT
           echo "dmg_name=$DMG_NAME" >> $GITHUB_OUTPUT
 
@@ -109,21 +112,27 @@ jobs:
       - name: Check if release exists
         id: check
         run: |
-          if curl -s https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.fetch.outputs.version }} | grep -q '"tag_name"'; then
+          if curl -s \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.fetch.outputs.version }} \
+            | grep -q '"tag_name"'; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Download DMG
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false' && needs.fetch.outputs.dmg_url != ''
         run: |
           curl -L "${{ needs.fetch.outputs.dmg_url }}" -o "${{ needs.fetch.outputs.dmg_name }}"
 
       - name: Create GitHub Release
-        if: steps.check.outputs.exists == 'false'
+        if: steps.check.outputs.exists == 'false' && needs.fetch.outputs.dmg_name != ''
         run: |
-          gh release create "${{ needs.fetch.outputs.version }}" "${{ needs.fetch.outputs.dmg_name }}" --title "${{ needs.fetch.outputs.name }}" --notes "${{ needs.fetch.outputs.body }}"
+          gh release create "${{ needs.fetch.outputs.version }}" \
+            "${{ needs.fetch.outputs.dmg_name }}" \
+            --title "${{ needs.fetch.outputs.name }}" \
+            --notes "${{ needs.fetch.outputs.body }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
@@ -146,9 +155,13 @@ jobs:
           git reset --hard origin/main
 
       - name: Download DMG (from own repo)
+        if: needs.fetch.outputs.dmg_name != ''
         run: |
-          curl -L "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" -o "${{ needs.fetch.outputs.dmg_name }}"
-
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GITHUB_TOKEN }}" \
+            "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" \
+            -o "${{ needs.fetch.outputs.dmg_name }}"
+      
       - name: Install Sparkle sign tool
         run: |
           curl -L https://github.com/sparkle-project/Sparkle/releases/latest/download/sign_update -o sign_update
