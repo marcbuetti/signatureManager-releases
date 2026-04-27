@@ -144,8 +144,7 @@ jobs:
 
       - name: Download DMG (from own repo)
         run: |
-          curl -L "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" 
-          -o "${{ needs.fetch.outputs.dmg_name }}"
+          curl -L "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" -o "${{ needs.fetch.outputs.dmg_name }}"
 
       - name: Install Sparkle tools
         run: |
