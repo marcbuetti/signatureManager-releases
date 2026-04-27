@@ -191,9 +191,8 @@ jobs:
       
       - name: Get DMG size
         id: dmg
-        if: needs.fetch.outputs.dmg_name != ''
         run: |
-          SIZE=$(stat -c%s "${{ needs.fetch.outputs.dmg_name }}")
+          SIZE=$(stat -f%z "${{ needs.fetch.outputs.dmg_name }}")
           echo "size=$SIZE" >> $GITHUB_OUTPUT
 
       - name: Generate Appcast XML
