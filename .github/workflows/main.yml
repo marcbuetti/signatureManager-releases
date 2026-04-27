@@ -120,10 +120,7 @@ jobs:
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
-          gh release create "${{ needs.fetch.outputs.version }}" 
-            "${{ needs.fetch.outputs.dmg_name }}" 
-            --title "${{ needs.fetch.outputs.name }}" 
-            --notes "${{ needs.fetch.outputs.body }}"
+          gh release create "${{ needs.fetch.outputs.version }}" "${{ needs.fetch.outputs.dmg_name }}" --title "${{ needs.fetch.outputs.name }}" --notes "${{ needs.fetch.outputs.body }}"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
