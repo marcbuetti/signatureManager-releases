@@ -97,8 +97,10 @@ jobs:
   mirror_release:
     runs-on: ubuntu-latest
     needs: fetch
-
+  
     steps:
+      - uses: actions/checkout@v5   # 👈 DAS FEHLT
+  
       - name: Check if release exists
         id: check
         run: |
@@ -107,13 +109,12 @@ jobs:
           else
             echo "exists=false" >> $GITHUB_OUTPUT
           fi
-
+  
       - name: Download DMG
         if: steps.check.outputs.exists == 'false'
         run: |
           curl -L "${{ needs.fetch.outputs.dmg_url }}" -o "${{ needs.fetch.outputs.dmg_name }}"
-
-      # 🔥 GH CLI statt Node Action (besser!)
+  
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false'
         run: |
