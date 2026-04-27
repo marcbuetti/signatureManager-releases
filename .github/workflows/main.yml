@@ -168,6 +168,16 @@ jobs:
           curl -L https://github.com/sparkle-project/Sparkle/releases/latest/download/sign_update -o sign_update
           chmod +x sign_update
 
+      - name: Extract build version from DMG
+        id: build
+        run: |
+          mkdir mount
+          hdiutil attach "${{ needs.fetch.outputs.dmg_name }}" -mountpoint mount
+          APP_PATH=$(find mount -name "*.app" | head -n1)
+          BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP_PATH/Contents/Info.plist")
+          hdiutil detach mount
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
+
       - name: Sign DMG
         id: sign
         run: |
@@ -199,7 +209,7 @@ jobs:
               <item>
                 <title>${{ needs.fetch.outputs.version }}</title>
                 <pubDate>${DATE}</pubDate>
-                <sparkle:version>${{ needs.fetch.outputs.version }}</sparkle:version>
+                <sparkle:version>${{ steps.build.outputs.build }}</sparkle:version>
                 <sparkle:shortVersionString>${{ needs.fetch.outputs.version }}</sparkle:shortVersionString>
                 <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
                 <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
