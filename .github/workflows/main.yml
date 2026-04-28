@@ -202,29 +202,13 @@ jobs:
 
       - name: Install Sparkle sign tool
         run: |
-          echo "Fetching Sparkle release..."
-      
-          API=$(curl -s https://api.github.com/repos/sparkle-project/Sparkle/releases/latest)
-      
-          URL=$(echo "$API" | jq -r '.assets[] | select(.name | test(".*\\.tar\\.xz$")) | .browser_download_url' | head -n1)
-      
-          echo "Download URL: $URL"
-      
-          curl -L "$URL" -o sparkle.tar.xz
-      
+          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.5.0/Sparkle-2.5.0.tar.xz -o sparkle.tar.xz
           tar -xf sparkle.tar.xz
       
-          SIGN_TOOL=$(find . -name sign_update | head -n1)
+          find . -name sign_update
       
-          if [ -z "$SIGN_TOOL" ]; then
-            echo "sign_update not found!"
-            exit 1
-          fi
-      
-          mv "$SIGN_TOOL" ./sign_update
+          mv $(find . -name sign_update | head -n1) ./sign_update
           chmod +x sign_update
-      
-          ./sign_update || true
 
       - name: Sign DMG
         id: sign
