@@ -204,22 +204,20 @@ jobs:
         run: |
           curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.5.0/Sparkle-2.5.0.tar.xz -o sparkle.tar.xz
           tar -xf sparkle.tar.xz
-      
-          find . -name sign_update
-      
-          mv $(find . -name sign_update | head -n1) ./sign_update
-          chmod +x sign_update
+          chmod +x ./bin/sign_update
 
       - name: Sign DMG
         id: sign
         run: |
           echo "Signing DMG..."
       
-          KEY=$(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY }}")
+          # 👉 Key in Datei schreiben
+          echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > key.txt
       
-          SIGNATURE=$(./sign_update \
+          # 👉 Signieren (WICHTIG: --ed-key-file)
+          SIGNATURE=$(./bin/sign_update \
             "${{ needs.fetch.outputs.dmg_name }}" \
-            "$KEY" \
+            --ed-key-file key.txt \
             | grep sparkle:edSignature \
             | sed 's/.*"\(.*\)".*/\1/')
       
