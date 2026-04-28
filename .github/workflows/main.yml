@@ -215,9 +215,11 @@ jobs:
         run: |
           echo "Signing DMG..."
       
+          KEY=$(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY }}")
+      
           SIGNATURE=$(./sign_update \
             "${{ needs.fetch.outputs.dmg_name }}" \
-            "${{ secrets.SPARKLE_PRIVATE_KEY }}" \
+            "$KEY" \
             | grep sparkle:edSignature \
             | sed 's/.*"\(.*\)".*/\1/')
       
