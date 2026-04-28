@@ -211,20 +211,21 @@ jobs:
         run: |
           echo "Signing DMG..."
       
-          # 👉 Key in Datei schreiben
           echo "${{ secrets.SPARKLE_PRIVATE_KEY }}" > key.txt
       
-          # 👉 Signieren (WICHTIG: --ed-key-file)
-          SIGNATURE=$(./bin/sign_update \
+          OUTPUT=$(./bin/sign_update \
             "${{ needs.fetch.outputs.dmg_name }}" \
-            --ed-key-file key.txt \
-            | grep sparkle:edSignature \
-            | sed 's/.*"\(.*\)".*/\1/')
+            --ed-key-file key.txt)
+      
+          echo "RAW OUTPUT:"
+          echo "$OUTPUT"
+      
+          SIGNATURE=$(echo "$OUTPUT" | sed -n 's/.*sparkle:edSignature="\([^"]*\)".*/\1/p')
       
           echo "signature=$SIGNATURE" >> $GITHUB_OUTPUT
       
           if [ -z "$SIGNATURE" ]; then
-            echo "❌ Signature failed"
+            echo "❌ Signature extraction failed"
             exit 1
           fi
       
