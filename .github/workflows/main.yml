@@ -208,6 +208,7 @@ jobs:
       - name: Sign DMG
         id: sign
         run: |
+          echo "${{ secrets.SPARKLE_PRIVATE_KEY }}")"
           SIGNATURE=$(./sign_update \
             "${{ needs.fetch.outputs.dmg_name }}" \
             "$(printf '%s' "${{ secrets.SPARKLE_PRIVATE_KEY }}")" \
