@@ -190,10 +190,14 @@ jobs:
             "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" \
             -o "${{ needs.fetch.outputs.dmg_name }}"
       
-      - name: Install Sparkle sign tool
+      - name: Install Sparkle tools
         run: |
-          curl -L https://github.com/sparkle-project/Sparkle/releases/latest/download/sign_update -o sign_update
+          curl -L https://github.com/sparkle-project/Sparkle/releases/latest/download/Sparkle.tar.xz -o sparkle.tar.xz
+          tar -xzf sparkle.tar.xz || tar -xf sparkle.tar.xz
+          SIGN_TOOL=$(find . -name sign_update | head -n1)
+          mv "$SIGN_TOOL" ./sign_update
           chmod +x sign_update
+          ./sign_update || true
 
       - name: Extract build version from DMG
         id: build
