@@ -213,15 +213,20 @@ jobs:
       - name: Sign DMG
         id: sign
         run: |
-          xcrun --find sign_update
+          echo "Signing DMG..."
       
-          SIGNATURE=$(xcrun sign_update \
+          SIGNATURE=$(./sign_update \
             "${{ needs.fetch.outputs.dmg_name }}" \
             "${{ secrets.SPARKLE_PRIVATE_KEY }}" \
             | grep sparkle:edSignature \
             | sed 's/.*"\(.*\)".*/\1/')
       
           echo "signature=$SIGNATURE" >> $GITHUB_OUTPUT
+      
+          if [ -z "$SIGNATURE" ]; then
+            echo "❌ Signature failed"
+            exit 1
+          fi
       
       - name: Get DMG size
         id: dmg
