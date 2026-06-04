@@ -154,7 +154,32 @@ jobs:
       - name: Download DMG
         if: steps.check.outputs.exists == 'false' && needs.fetch.outputs.dmg_url != ''
         run: |
-          curl -L "${{ needs.fetch.outputs.dmg_url }}" -o "${{ needs.fetch.outputs.dmg_name }}"
+          DATA=$(curl -s \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/vnd.github+json" \
+            https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/latest)
+
+          ASSET_ID=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .id' | head -n1)
+
+          echo "Asset ID: $ASSET_ID"
+
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/assets/$ASSET_ID" \
+            -o "${{ needs.fetch.outputs.dmg_name }}"
+
+          ls -lh "${{ needs.fetch.outputs.dmg_name }}"
+          file "${{ needs.fetch.outputs.dmg_name }}"
+
+          SIZE=$(wc -c < "${{ needs.fetch.outputs.dmg_name }}")
+          echo "Downloaded size: $SIZE"
+
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "Source DMG download failed"
+            cat "${{ needs.fetch.outputs.dmg_name }}"
+            exit 1
+          fi
 
       - name: Create GitHub Release
         if: steps.check.outputs.exists == 'false' && needs.fetch.outputs.dmg_name != ''
@@ -163,6 +188,13 @@ jobs:
             "${{ needs.fetch.outputs.dmg_name }}" \
             --title "${{ needs.fetch.outputs.name }}" \
             --notes "${{ needs.fetch.outputs.body }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Verify mirrored release assets
+        if: steps.check.outputs.exists == 'false'
+        run: |
+          gh release view "${{ needs.fetch.outputs.version }}" --json assets
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
@@ -189,10 +221,14 @@ jobs:
         if: needs.fetch.outputs.dmg_name != ''
         run: |
           gh release download "${{ needs.fetch.outputs.version }}" \
-            --pattern "${{ needs.fetch.outputs.dmg_name }}"
+            --pattern "${{ needs.fetch.outputs.dmg_name }}" \
+            --repo "${{ github.repository }}"
 
           ls -lh "${{ needs.fetch.outputs.dmg_name }}"
           file "${{ needs.fetch.outputs.dmg_name }}"
+
+          echo "Content preview:"
+          head -c 200 "${{ needs.fetch.outputs.dmg_name }}" || true
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
