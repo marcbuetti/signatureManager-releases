@@ -22,6 +22,7 @@ jobs:
       body: ${{ steps.data.outputs.body }}
       dmg_url: ${{ steps.data.outputs.dmg_url }}
       dmg_name: ${{ steps.data.outputs.dmg_name }}
+      dmg_asset_id: ${{ steps.data.outputs.dmg_asset_id }}
 
     steps:
       - name: Install jq
@@ -43,6 +44,7 @@ jobs:
       
           DMG_URL=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .browser_download_url' | head -n1)
           DMG_NAME=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .name' | head -n1)
+          DMG_ASSET_ID=$(echo "$DATA" | jq -r '.assets[]? | select(.name | test("\\.dmg$"; "i")) | .id' | head -n1)
       
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "name=$NAME" >> $GITHUB_OUTPUT
@@ -53,6 +55,7 @@ jobs:
       
           echo "dmg_url=$DMG_URL" >> $GITHUB_OUTPUT
           echo "dmg_name=$DMG_NAME" >> $GITHUB_OUTPUT
+          echo "dmg_asset_id=$DMG_ASSET_ID" >> $GITHUB_OUTPUT
 
 
   # ========================
@@ -185,14 +188,25 @@ jobs:
       - name: Download DMG (from own repo)
         if: needs.fetch.outputs.dmg_name != ''
         run: |
-          curl -L \
-            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-            "https://github.com/${{ github.repository }}/releases/download/${{ needs.fetch.outputs.version }}/${{ needs.fetch.outputs.dmg_name }}" \
-            -o "${{ needs.fetch.outputs.dmg_name }}"
-      
+          gh release download "${{ needs.fetch.outputs.version }}" \
+            --pattern "${{ needs.fetch.outputs.dmg_name }}"
+
+          ls -lh "${{ needs.fetch.outputs.dmg_name }}"
+          file "${{ needs.fetch.outputs.dmg_name }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
       - name: Extract build version from DMG
         id: build
         run: |
+          SIZE=$(stat -f%z "${{ needs.fetch.outputs.dmg_name }}")
+          echo "Downloaded size: $SIZE"
+
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "Downloaded file is too small to be a DMG"
+            cat "${{ needs.fetch.outputs.dmg_name }}"
+            exit 1
+          fi
           mkdir mount
           hdiutil attach "${{ needs.fetch.outputs.dmg_name }}" -mountpoint mount
           APP_PATH=$(find mount -name "*.app" | head -n1)
