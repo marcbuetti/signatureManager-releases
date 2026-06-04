@@ -142,10 +142,15 @@ jobs:
       - name: Check if release exists
         id: check
         run: |
-          if curl -s \
+          RESPONSE=$(curl -s \
             -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
-            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.fetch.outputs.version }} \
-            | grep -q '"tag_name"'; then
+            https://api.github.com/repos/${{ github.repository }}/releases/tags/${{ needs.fetch.outputs.version }})
+
+          echo "$RESPONSE"
+
+          ASSET_COUNT=$(echo "$RESPONSE" | jq '.assets | length' 2>/dev/null || echo 0)
+
+          if echo "$RESPONSE" | grep -q '"tag_name"' && [ "$ASSET_COUNT" -gt 0 ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
@@ -204,7 +209,7 @@ jobs:
   # ========================
   generate_appcast:
     runs-on: macos-latest
-    needs: [fetch, mirror_release]
+    needs: [fetch, mirror_release, update_html]
     if: needs.fetch.outputs.dmg_name != ''
 
     steps:
@@ -217,18 +222,31 @@ jobs:
           git fetch origin
           git reset --hard origin/main
 
-      - name: Download DMG (from own repo)
-        if: needs.fetch.outputs.dmg_name != ''
+      - name: Delete broken mirrored release
         run: |
-          gh release download "${{ needs.fetch.outputs.version }}" \
-            --pattern "${{ needs.fetch.outputs.dmg_name }}" \
-            --repo "${{ github.repository }}"
+          gh release delete "${{ needs.fetch.outputs.version }}" --yes --cleanup-tag || true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+
+      - name: Download DMG directly from source release asset
+        run: |
+          curl -L \
+            -H "Authorization: Bearer ${{ secrets.GH_PAT }}" \
+            -H "Accept: application/octet-stream" \
+            "https://api.github.com/repos/marcbuetti/macOS-SignatureManager/releases/assets/${{ needs.fetch.outputs.dmg_asset_id }}" \
+            -o "${{ needs.fetch.outputs.dmg_name }}"
 
           ls -lh "${{ needs.fetch.outputs.dmg_name }}"
           file "${{ needs.fetch.outputs.dmg_name }}"
 
-          echo "Content preview:"
-          head -c 200 "${{ needs.fetch.outputs.dmg_name }}" || true
+          SIZE=$(wc -c < "${{ needs.fetch.outputs.dmg_name }}")
+          echo "Downloaded size: $SIZE"
+
+          if [ "$SIZE" -lt 1000000 ]; then
+            echo "Direct asset download failed"
+            cat "${{ needs.fetch.outputs.dmg_name }}"
+            exit 1
+          fi
         env:
           GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
