@@ -222,11 +222,6 @@ jobs:
           git fetch origin
           git reset --hard origin/main
 
-      - name: Delete broken mirrored release
-        run: |
-          gh release delete "${{ needs.fetch.outputs.version }}" --yes --cleanup-tag || true
-        env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
 
       - name: Download DMG directly from source release asset
         run: |
