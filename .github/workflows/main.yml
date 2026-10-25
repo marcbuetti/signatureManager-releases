@@ -260,12 +260,16 @@ jobs:
           hdiutil attach "${{ needs.fetch.outputs.dmg_name }}" -mountpoint mount
           APP_PATH=$(find mount -name "*.app" | head -n1)
           BUILD=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP_PATH/Contents/Info.plist")
+          # Minimum macOS version comes from the app itself (MACOSX_DEPLOYMENT_TARGET),
+          # so the appcast can never offer an update to a Mac that cannot run it.
+          MIN_OS=$(/usr/libexec/PlistBuddy -c "Print :LSMinimumSystemVersion" "$APP_PATH/Contents/Info.plist")
           hdiutil detach mount
           echo "build=$BUILD" >> $GITHUB_OUTPUT
+          echo "min_os=$MIN_OS" >> $GITHUB_OUTPUT
 
       - name: Install Sparkle sign tool
         run: |
-          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.5.0/Sparkle-2.5.0.tar.xz -o sparkle.tar.xz
+          curl -L https://github.com/sparkle-project/Sparkle/releases/download/2.10.1/Sparkle-2.10.1.tar.xz -o sparkle.tar.xz
           tar -xf sparkle.tar.xz
           chmod +x ./bin/sign_update
 
@@ -313,7 +317,7 @@ jobs:
                 <pubDate>${DATE}</pubDate>
                 <sparkle:version>${{ steps.build.outputs.build }}</sparkle:version>
                 <sparkle:shortVersionString>${{ needs.fetch.outputs.version }}</sparkle:shortVersionString>
-                <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+                <sparkle:minimumSystemVersion>${{ steps.build.outputs.min_os }}</sparkle:minimumSystemVersion>
                 <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
           
                 <enclosure 

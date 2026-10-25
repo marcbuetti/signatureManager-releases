@@ -8,7 +8,7 @@
       <pubDate>Thu, 04 Jun 2026 17:26:25 +0000</pubDate>
       <sparkle:version>1042</sparkle:version>
       <sparkle:shortVersionString>4.1.0</sparkle:shortVersionString>
-      <sparkle:minimumSystemVersion>14.0</sparkle:minimumSystemVersion>
+      <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
 
       <enclosure 
