@@ -4,18 +4,18 @@
     <title>Signature Manager</title>
 
     <item>
-      <title>4.1.1</title>
-      <pubDate>Mon, 26 Oct 2026 01:03:00 +0000</pubDate>
-      <sparkle:version>1043</sparkle:version>
-      <sparkle:shortVersionString>4.1.1</sparkle:shortVersionString>
+      <title>4.1.2</title>
+      <pubDate>Tue, 27 Oct 2026 19:34:19 +0000</pubDate>
+      <sparkle:version>1044</sparkle:version>
+      <sparkle:shortVersionString>4.1.2</sparkle:shortVersionString>
       <sparkle:minimumSystemVersion>26.0</sparkle:minimumSystemVersion>
       <sparkle:releaseNotesLink>https://marcbuetti.github.io/signatureManager-releases/releaseNotes.html</sparkle:releaseNotesLink>
 
       <enclosure 
-        url="https://github.com/marcbuetti/signatureManager-releases/releases/download/4.1.1/Signature.Manager.dmg"
-        length="8592651"
+        url="https://github.com/marcbuetti/signatureManager-releases/releases/download/4.1.2/Signature.Manager.dmg"
+        length="8493174"
         type="application/octet-stream"
-        sparkle:edSignature="tBLZuJ1ZAAFb2Z4tBgrlHLQjaAuBJNuCpUWyO8ONcwOG+C72DUu5rqYiaBuPr+xeYb3OHTjWOUO2GJHKmRlKBQ=="
+        sparkle:edSignature="DQTFsbpoON7YBSgyfvYTJ2JBk5YEXuxvvCCAZooUnLSQoxqIAiL0O1y5li3BeBgSMP2g9vzk0RvgL97Wimk9Bg=="
       />
     </item>
 
